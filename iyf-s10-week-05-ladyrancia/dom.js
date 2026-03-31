@@ -22,3 +22,12 @@ form.addEventListener("submit", function(event) {
     nameInput.value = "";
     emailInput.value = "";
 });
+
+// STEP 5: Real-time input
+nameInput.addEventListener("input", function(e) {
+    if (e.target.value.length < 2) {
+        nameInput.style.border = "2px solid red";
+    } else {
+        nameInput.style.border = "2px solid green";
+    }
+});
