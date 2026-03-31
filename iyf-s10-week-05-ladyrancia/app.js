@@ -32,3 +32,14 @@ form.addEventListener("submit", function(e) {
 
     input.value = "";
 });
+list.addEventListener("click", function(e) {
+
+    if (e.target.tagName === "LI") {
+        e.target.classList.toggle("completed");
+    }
+
+    if (e.target.tagName === "BUTTON") {
+        e.target.parentElement.remove();
+    }
+
+});
