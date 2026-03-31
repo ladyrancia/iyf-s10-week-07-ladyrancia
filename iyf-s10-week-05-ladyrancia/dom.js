@@ -1,2 +1,10 @@
 // STEP 1: Test connection
 console.log("JS working");
+// STEP 2: Selection
+const h1 = document.querySelector("h1");
+console.log(h1);
+
+// STEP 3: Click event
+h1.addEventListener("click", function() {
+    h1.textContent = "You clicked me 😎";
+});
