@@ -8,3 +8,17 @@ console.log(h1);
 h1.addEventListener("click", function() {
     h1.textContent = "You clicked me 😎";
 });
+
+// STEP 4: Form handling
+const form = document.getElementById("contact-form");
+const nameInput = document.getElementById("name");
+const emailInput = document.getElementById("email");
+
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    console.log(nameInput.value, emailInput.value);
+
+    nameInput.value = "";
+    emailInput.value = "";
+});
