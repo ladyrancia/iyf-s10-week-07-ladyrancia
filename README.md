@@ -44,6 +44,6 @@ This project is a refactored To-Do List application that uses localStorage to pe
 * Debugging localStorage issues
 * Structuring code properly
 
-## Live Demo (if deployed)
+## Live Demo 
 
 [View Project](http://127.0.0.1:5500/index.html)
