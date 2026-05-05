@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Day 4 - Refactor Challenge</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Courier New', Consolas, monospace;
+                background-color: #1e1e1e;
+                color: #d4d4d4;
+                padding: 2rem;
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+
+            h1 {
+                color: #569cd6;
+                margin-bottom: 1rem;
+            }
+
+            h2 {
+                color: #4ec9b0;
+                margin: 2rem 0 1rem;
+                border-bottom: 1px solid #3c3c3c;
+                padding-bottom: 0.5rem;
+            }
+
+            h3 {
+                color: #dcdcaa;
+                margin: 1.5rem 0 1rem;
+            }
+
+            .description {
+                color: #9cdcfe;
+                margin-bottom: 1.5rem;
+                font-style: italic;
+            }
+
+            .code-section {
+                margin-bottom: 3rem;
+            }
+
+            pre {
+                background: #252526;
+                padding: 1.5rem;
+                border-radius: 8px;
+                overflow-x: auto;
+                border-left: 4px solid #e51400;
+            }
+
+            .good pre {
+                border-left-color: #4ec9b0;
+            }
+
+            .bad pre {
+                border-left-color: #e51400;
+            }
+
+            code {
+                font-family: 'Courier New', Consolas, monospace;
+                font-size: 0.9rem;
+            }
+
+            .commentary {
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #2d2d30;
+                border-radius: 6px;
+                color: #ce9178;
+            }
+
+            .commentary ul {
+                list-style: none;
+                padding-left: 0;
+            }
+
+            .commentary li::before {
+                content: '❌ ';
+                color: #e51400;
+            }
+
+            .improvements li::before {
+                content: '✅ ';
+                color: #4ec9b0;
+            }
+
+            .improvements {
+                color: #d4d4d4;
+            }
+
+            .label {
+                display: inline-block;
+                padding: 4px 12px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: bold;
+                margin-right: 10px;
+            }
+
+            .bad-label {
+                background: #e51400;
+                color: white;
+            }
+
+            .good-label {
+                background: #4ec9b0;
+                color: #1e1e1e;
+            }
+
+            .challenge-box {
+                background: #0e639c;
+                padding: 1.5rem;
+                border-radius: 8px;
+                margin: 2rem 0;
+            }
+
+            .challenge-box h3 {
+                color: #ffffff;
+                margin-top: 0;
+            }
+
+            .challenge-box p {
+                color: #d4d4d4;
+            }
+
+            .checklist {
+                list-style: none;
+                padding: 0;
+            }
+
+            .checklist li {
+                padding: 0.5rem 0;
+                border-bottom: 1px solid #1e3a5f;
+            }
+
+            .checklist li:last-child {
+                border-bottom: none;
+            }
+
+            .checklist input[type='checkbox'] {
+                margin-right: 10px;
+                transform: scale(1.2);
+            }
+
+            footer {
+                margin-top: 3rem;
+                padding-top: 1rem;
+                border-top: 1px solid #3c3c3c;
+                text-align: center;
+                color: #808080;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📦 Day 4: Code Refactoring Challenge</h1>
+            <p class="description">
+                Take messy code and transform it into clean, maintainable
+                JavaScript.
+            </p>
+
+            <!-- BEFORE -->
+            <section class="code-section">
+                <h2><span class="label bad-label">BEFORE</span> Messy Code</h2>
+
+                <pre><code>// User Management System - Messy Version
+function u(d) {
+    var e = d.email;
+    var n = d.name;
+    var a = d.age;
+    if (!e.includes("@")) throw "bad email";
+    if (a < 18) throw "too young";
+    var nm = n.trim();
+    var em = e.toLowerCase();
+    db.save({
+        n: nm,
+        e: em,
+        a: a
+    });
+    sendEmail(em, "welcome");
+    document.getElementById("st").innerHTML = "OK!";
+    return {
+        success: !0
+    };
+}
+
+function gUsr(d) {
+    try {
+        var r = fetch("/api/user/" + d.id);
+        return r.json();
+    } catch (er) {
+        console.error(er);
+    }
+}
+
+var users = [];
+var i = 0;
+while (i < 10) {
+    users.push({
+        id: i,
+        n: "User" + i,
+        e: "user" + i + "@test.com",
+        a: 20 + i
+    });
+    i++;
+}
+
+function proc(x, y, z) {
+    var t = x + y;
+    var r = t * z;
+    return r * 0.1;
+}
+
+var r = proc(100, 50, 3);
+console.log(r);</code></pre>
+
+                <div class="commentary">
+                    <h3>What's Wrong?</h3>
+                    <ul>
+                        <li>Unclear variable names (u, e, n, a, d)</li>
+                        <li>Magic numbers (0.1, 10)</li>
+                        <li>No error handling details</li>
+                        <li>Mixed concerns (validation, DB, UI all in one)</li>
+                        <li>No comments or documentation</li>
+                        <li>Uses var instead of const/let</li>
+                        <li>Hard-coded strings</li>
+                        <li>Poor formatting</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- AFTER -->
+            <section class="code-section good">
+                <h2>
+                    <span class="label good-label">AFTER</span> Clean,
+                    Refactored Code
+                </h2>
+
+                <pre><code>// Constants
+const MIN_AGE = 18;
+const DEFAULT_DISCOUNT_RATE = 0.1;
+const MAX_USERS = 10;
+
+/**
+ * Validate user data
+ * @param {Object} userData - User information
+ * @throws {Error} If validation fails
+ */
+function validateUserData(userData) {
+    if (!userData.email.includes("@")) {
+        throw new Error("Invalid email address");
+    }
+    if (userData.age < MIN_AGE) {
+        throw new Error("User must be at least " + MIN_AGE + " years old");
+    }
+}
+
+/**
+ * Normalize user data
+ * @param {Object} userData - Raw user data
+ * @returns {Object} Normalized user data
+ */
+function normalizeUserData(userData) {
+    return {
+        name: userData.name.trim(),
+        email: userData.email.toLowerCase(),
+        age: userData.age
+    };
+}
+
+/**
+ * Save user to database
+ * @param {Object} user - Normalized user object
+ * @returns {Promise} Save operation
+ */
+async function saveUserToDatabase(user) {
+    return await db.save({
+        name: user.name,
+        email: user.email,
+        age: user.age
+    });
+}
+
+/**
+ * Send welcome email
+ * @param {string} email - User email
+ */
+async function sendWelcomeEmail(email) {
+    await sendEmail(email, "Welcome to our platform!");
+}
+
+/**
+ * Update UI after successful user creation
+ */
+function updateSuccessUI() {
+    const statusEl = document.getElementById("status");
+    if (statusEl) {
+        statusEl.textContent = "User created successfully!";
+        statusEl.className = "success";
+    }
+}
+
+/**
+ * Main function to process user registration
+ * @param {Object} userData - Raw user data from form
+ * @returns {Object} Result object
+ */
+async function processUserRegistration(userData) {
+    try {
+        // Validate input
+        validateUserData(userData);
+
+        // Normalize data
+        const normalizedUser = normalizeUserData(userData);
+
+        // Persist to database
+        await saveUserToDatabase(normalizedUser);
+
+        // Send welcome email (async, fire-and-forget)
+        sendWelcomeEmail(normalizedUser.email).catch(console.error);
+
+        // Update UI
+        updateSuccessUI();
+
+        return { success: true, user: normalizedUser };
+    } catch (error) {
+        console.error("User registration failed:", error);
+        document.getElementById("status").textContent = "Error: " + error.message;
+        document.getElementById("status").className = "error";
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Generate sample users
+ * @param {number} count - Number of users to generate
+ * @returns {Array} Array of user objects
+ */
+function generateSampleUsers(count = MAX_USERS) {
+    const users = [];
+    for (let i = 0; i < count; i++) {
+        users.push({
+            id: i,
+            name: `User${i}`,
+            email: `user${i}@test.com`,
+            age: 20 + i
+        });
+    }
+    return users;
+}
+
+/**
+ * Calculate discount total
+ * @param {number} basePrice - Base price
+ * @param {number} quantity - Quantity
+ * @param {number} discountRate - Discount rate (default: DEFAULT_DISCOUNT_RATE)
+ * @returns {number} Final price after discount
+ */
+function calculateDiscountedTotal(basePrice, quantity, discountRate = DEFAULT_DISCOUNT_RATE) {
+    const subtotal = basePrice * quantity;
+    return subtotal * (1 - discountRate);
+}
+
+// Usage examples
+const sampleUsers = generateSampleUsers();
+const discountedTotal = calculateDiscountedTotal(100, 50, 3);
+console.log("Discounted total:", discountedTotal);</code></pre>
+
+                <div class="commentary improvements">
+                    <h3>Improvements Made</h3>
+                    <ul>
+                        <li>Meaningful variable and function names</li>
+                        <li>
+                            Single Responsibility Principle - each function does
+                            ONE thing
+                        </li>
+                        <li>Constants instead of magic numbers</li>
+                        <li>Proper error handling with detailed messages</li>
+                        <li>JSDoc comments for documentation</li>
+                        <li>Uses const/let instead of var</li>
+                        <li>
+                            Separated concerns: validation, normalization,
+                            persistence, UI
+                        </li>
+                        <li>Async/await for promise handling</li>
+                        <li>Returns consistent result objects</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- YOUR TASK -->
+            <div class="challenge-box">
+                <h3>🎯 Your Challenge</h3>
+                <p>
+                    Take the messy code above and refactor it yourself! Follow
+                    these steps:
+                </p>
+                <ol class="checklist">
+                    <li>
+                        <input type="checkbox" /> Rename all variables to
+                        meaningful names
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Replace magic numbers with
+                        named constants
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Split the monolithic
+                        <code>processUser</code> function into smaller, focused
+                        functions
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Add proper error handling with
+                        try-catch
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Add JSDoc comments to all
+                        functions
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Replace all
+                        <code>var</code> with <code>const</code> or
+                        <code>let</code>
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Format code with consistent
+                        indentation
+                    </li>
+                    <li>
+                        <input type="checkbox" /> Test that refactored code
+                        works the same
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Resources -->
+            <section>
+                <h2>📚 Refactoring Tips</h2>
+
+                <h3>1. Extract Meaningful Names</h3>
+                <pre><code>// Before
+var d = new Date();
+var x = data.filter(u => u.a > 18);
+
+// After
+const currentDate = new Date();
+const adultUsers = users.filter(user => user.age > 18);</code></pre>
+
+                <h3>2. Single Responsibility</h3>
+                <pre><code>// Before - Does too many things
+function processOrder(order) {
+    validate(order);
+    calculateTotal(order);
+    saveToDB(order);
+    sendEmail(order);
+    updateUI();
+}
+
+// After - Each function has ONE job
+function validateOrder(order) { /* validation only */ }
+function calculateOrderTotal(order) { /* calculation only */ }
+async function persistOrder(order) { /* database only */ }
+async function notifyCustomer(order) { /* email only */ }
+function renderOrderConfirmation(order) { /* UI only */ }</code></pre>
+
+                <h3>3. Replace Magic Numbers</h3>
+                <pre><code>// Before
+if (password.length < 8) { }
+setTimeout(callback, 86400000);
+
+// After
+const MIN_PASSWORD_LENGTH = 8;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+if (password.length < MIN_PASSWORD_LENGTH) { }
+setTimeout(callback, ONE_DAY_MS);</code></pre>
+
+                <h3>4. Error Handling</h3>
+                <pre><code>// Before - Silent failures
+function loadUser(id) {
+    return db.find(id);  // What if not found?
+}
+
+// After - Proper error handling
+async function loadUser(id) {
+    if (!id) {
+        throw new Error("User ID is required");
+    }
+    try {
+        const user = await db.find(id);
+        if (!user) {
+            throw new Error("User not found");
+        }
+        return user;
+    } catch (error) {
+        console.error("Failed to load user:", error);
+        throw error;  // Re-throw for caller to handle
+    }
+}</code></pre>
+            </section>
+
+            <footer>
+                <p>
+                    Day 4 - JavaScript Best Practices | Refactoring makes code
+                    maintainable
+                </p>
+            </footer>
+        </div>
+    </body>
+</html>

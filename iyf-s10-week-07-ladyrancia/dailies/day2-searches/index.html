@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Day 2 - Recent Searches</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f5f5f5;
+                color: #333;
+                padding: 2rem;
+            }
+
+            .container {
+                max-width: 600px;
+                margin: 0 auto;
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                color: #2c3e50;
+                margin-bottom: 0.5rem;
+            }
+
+            .subtitle {
+                color: #7f8c8d;
+                margin-bottom: 1.5rem;
+            }
+
+            .search-wrapper {
+                position: relative;
+            }
+
+            #searchInput {
+                width: 100%;
+                padding: 12px 16px;
+                font-size: 1rem;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                transition: border-color 0.3s;
+            }
+
+            #searchInput:focus {
+                outline: none;
+                border-color: #3498db;
+            }
+
+            #suggestions {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                max-height: 200px;
+                overflow-y: auto;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                display: none;
+                z-index: 100;
+            }
+
+            #suggestions div {
+                padding: 10px 16px;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+
+            #suggestions div:hover {
+                background: #f0f0f0;
+            }
+
+            #suggestions .highlight {
+                font-weight: bold;
+                color: #3498db;
+            }
+
+            .instructions {
+                margin-top: 2rem;
+                padding: 1rem;
+                background: #ecf0f1;
+                border-radius: 8px;
+                font-size: 0.9rem;
+            }
+
+            .instructions h3 {
+                margin-bottom: 0.5rem;
+                color: #2c3e50;
+            }
+
+            .instructions ul {
+                padding-left: 1.5rem;
+            }
+
+            .instructions li {
+                margin-bottom: 0.3rem;
+            }
+
+            .history-count {
+                margin-top: 1rem;
+                color: #7f8c8d;
+                font-size: 0.85rem;
+            }
+
+            .clear-history {
+                margin-top: 1rem;
+                padding: 8px 16px;
+                background: #e74c3c;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 0.9rem;
+            }
+
+            .clear-history:hover {
+                background: #c0392b;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Recent Searches</h1>
+            <p class="subtitle">Search history saved to localStorage</p>
+
+            <div class="search-wrapper">
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Type to search... (last 5 saved)"
+                    autocomplete="off"
+                />
+                <div id="suggestions"></div>
+            </div>
+
+            <div class="history-count">
+                Recent searches: <span id="historyCount">0</span> / 5
+            </div>
+
+            <button id="clearHistoryBtn" class="clear-history">
+                Clear History
+            </button>
+
+            <div class="instructions">
+                <h3>How It Works</h3>
+                <ul>
+                    <li>Your last 5 searches are saved to localStorage</li>
+                    <li>Click a suggestion to search again</li>
+                    <li>History persists across page refreshes</li>
+                    <li>Duplicates are automatically removed</li>
+                    <li>Maximum of 5 searches stored</li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+            const SEARCH_HISTORY_KEY = 'searchHistory';
+            const MAX_HISTORY = 5;
+
+            const searchInput = document.getElementById('searchInput');
+            const suggestions = document.getElementById('suggestions');
+            const historyCountEl = document.getElementById('historyCount');
+            const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+            /**
+             * Get search history from localStorage
+             * @returns {Array} Search history array
+             */
+            function getSearchHistory() {
+                try {
+                    const data = localStorage.getItem(SEARCH_HISTORY_KEY);
+                    return data ? JSON.parse(data) : [];
+                } catch (error) {
+                    console.error('Error reading search history:', error);
+                    return [];
+                }
+            }
+
+            /**
+             * Save search history to localStorage
+             * @param {Array} history - Search history array
+             */
+            function saveSearchHistory(history) {
+                try {
+                    localStorage.setItem(
+                        SEARCH_HISTORY_KEY,
+                        JSON.stringify(history)
+                    );
+                } catch (error) {
+                    console.error('Error saving search history:', error);
+                }
+            }
+
+            /**
+             * Add a search term to history
+             * @param {string} term - Search term
+             */
+            function addToHistory(term) {
+                const trimmed = term.trim();
+                if (!trimmed) return;
+
+                let history = getSearchHistory();
+
+                // Remove if already exists
+                history = history.filter(
+                    (item) => item.toLowerCase() !== trimmed.toLowerCase()
+                );
+
+                // Add to beginning
+                history.unshift(trimmed);
+
+                // Limit to MAX_HISTORY
+                if (history.length > MAX_HISTORY) {
+                    history = history.slice(0, MAX_HISTORY);
+                }
+
+                saveSearchHistory(history);
+                updateHistoryCount();
+            }
+
+            /**
+             * Update history count display
+             */
+            function updateHistoryCount() {
+                const history = getSearchHistory();
+                historyCountEl.textContent = history.length;
+            }
+
+            /**
+             * Show suggestions dropdown
+             * @param {Array} matches - Matching search terms
+             * @param {string} query - Current input value
+             */
+            function showSuggestions(matches, query) {
+                if (matches.length === 0) {
+                    suggestions.style.display = 'none';
+                    return;
+                }
+
+                suggestions.innerHTML = matches
+                    .map((term) => {
+                        const highlighted = highlightMatch(term, query);
+                        return `<div data-term="${term}">${highlighted}</div>`;
+                    })
+                    .join('');
+
+                suggestions.style.display = 'block';
+
+                // Add click listeners
+                suggestions.querySelectorAll('div').forEach((item) => {
+                    item.addEventListener('click', () => {
+                        const term = item.dataset.term;
+                        searchInput.value = term;
+                        suggestions.style.display = 'none';
+                        performSearch(term);
+                    });
+                });
+            }
+
+            /**
+             * Highlight matching text
+             * @param {string} text - Original text
+             * @param {string} query - Search query
+             * @returns {string} HTML with highlighted match
+             */
+            function highlightMatch(text, query) {
+                const lowerText = text.toLowerCase();
+                const lowerQuery = query.toLowerCase();
+                const index = lowerText.indexOf(lowerQuery);
+
+                if (index === -1) return text;
+
+                const before = text.substring(0, index);
+                const match = text.substring(index, index + query.length);
+                const after = text.substring(index + query.length);
+
+                return `${before}<span class="highlight">${match}</span>${after}`;
+            }
+
+            /**
+             * Perform search action
+             * @param {string} term - Search term
+             */
+            function performSearch(term) {
+                console.log('Searching for:', term);
+                addToHistory(term);
+                alert(`Searching for: "${term}"`);
+            }
+
+            /**
+             * Filter history based on input
+             * @param {string} query - Search query
+             * @returns {Array} Matching terms
+             */
+            function filterHistory(query) {
+                const history = getSearchHistory();
+                if (!query) return [];
+
+                return history.filter((term) =>
+                    term.toLowerCase().includes(query.toLowerCase())
+                );
+            }
+
+            // Event listeners
+            let debounceTimer;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const query = e.target.value.trim();
+
+                debounceTimer = setTimeout(() => {
+                    if (query.length > 0) {
+                        const matches = filterHistory(query);
+                        showSuggestions(matches, query);
+                    } else {
+                        suggestions.style.display = 'none';
+                    }
+                }, 150);
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-wrapper')) {
+                    suggestions.style.display = 'none';
+                }
+            });
+
+            // Handle Enter key
+            searchInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    const query = searchInput.value.trim();
+                    if (query) {
+                        performSearch(query);
+                        suggestions.style.display = 'none';
+                    }
+                }
+            });
+
+            // Clear history
+            clearHistoryBtn.addEventListener('click', () => {
+                if (confirm('Clear all search history?')) {
+                    localStorage.removeItem(SEARCH_HISTORY_KEY);
+                    updateHistoryCount();
+                    suggestions.style.display = 'none';
+                }
+            });
+
+            // Initialize
+            (function init() {
+                updateHistoryCount();
+                searchInput.focus();
+            })();
+        </script>
+    </body>
+</html>

@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Day 3 - Form Auto-Save</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f5f5f5;
+                color: #333;
+                padding: 2rem;
+            }
+
+            .container {
+                max-width: 700px;
+                margin: 0 auto;
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            h1 {
+                color: #2c3e50;
+                margin-bottom: 0.5rem;
+            }
+
+            .subtitle {
+                color: #7f8c8d;
+                margin-bottom: 2rem;
+            }
+
+            .form-group {
+                margin-bottom: 1.5rem;
+            }
+
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: #2c3e50;
+            }
+
+            input[type='text'],
+            input[type='email'],
+            textarea {
+                width: 100%;
+                padding: 12px 16px;
+                font-size: 1rem;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                font-family: inherit;
+                transition: border-color 0.3s;
+            }
+
+            input:focus,
+            textarea:focus {
+                outline: none;
+                border-color: #3498db;
+            }
+
+            textarea {
+                resize: vertical;
+                min-height: 100px;
+            }
+
+            .saved-indicator {
+                display: inline-block;
+                margin-left: 10px;
+                font-size: 0.85rem;
+                color: #27ae60;
+                opacity: 0;
+                transition: opacity 0.3s;
+            }
+
+            .saved-indicator.visible {
+                opacity: 1;
+            }
+
+            .button-group {
+                display: flex;
+                gap: 1rem;
+                margin-top: 2rem;
+            }
+
+            button {
+                padding: 12px 24px;
+                font-size: 1rem;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .submit-btn {
+                background-color: #27ae60;
+                color: white;
+            }
+
+            .submit-btn:hover {
+                background-color: #229954;
+            }
+
+            .clear-btn {
+                background-color: #e74c3c;
+                color: white;
+            }
+
+            .clear-btn:hover {
+                background-color: #c0392b;
+            }
+
+            .recover-btn {
+                background-color: #f39c12;
+                color: white;
+            }
+
+            .recover-btn:hover {
+                background-color: #d68910;
+            }
+
+            .status-bar {
+                margin-top: 1.5rem;
+                padding: 1rem;
+                background: #ecf0f1;
+                border-radius: 6px;
+                font-size: 0.9rem;
+            }
+
+            .status-bar p {
+                margin-bottom: 0.5rem;
+            }
+
+            .autosave-info {
+                margin-top: 2rem;
+                padding: 1rem;
+                background: #e8f4f8;
+                border-left: 4px solid #3498db;
+                border-radius: 6px;
+            }
+
+            .autosave-info h3 {
+                color: #2c3e50;
+                margin-bottom: 0.5rem;
+            }
+
+            .autosave-info ul {
+                padding-left: 1.5rem;
+            }
+
+            .autosave-info li {
+                margin-bottom: 0.3rem;
+            }
+
+            /* Success message overlay */
+            .success-message {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #27ae60;
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                opacity: 0;
+                transform: translateY(-20px);
+                transition:
+                    opacity 0.3s,
+                    transform 0.3s;
+                z-index: 1000;
+            }
+
+            .success-message.show {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Contact Form with Auto-Save</h1>
+            <p class="subtitle">
+                Form data is auto-saved every 5 seconds to sessionStorage
+            </p>
+
+            <form id="contactForm">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        placeholder="John Doe"
+                    />
+                    <span class="saved-indicator" id="nameSaved">Saved</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="john@example.com"
+                    />
+                    <span class="saved-indicator" id="emailSaved">Saved</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message:</label>
+                    <textarea
+                        id="message"
+                        name="message"
+                        placeholder="Your message here..."
+                    ></textarea>
+                    <span class="saved-indicator" id="messageSaved">Saved</span>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="submit-btn">
+                        Send Message
+                    </button>
+                    <button type="button" id="clearFormBtn" class="clear-btn">
+                        Clear Form
+                    </button>
+                    <button type="button" id="recoverBtn" class="recover-btn">
+                        Recover Data
+                    </button>
+                </div>
+            </form>
+
+            <div class="status-bar">
+                <p>Last auto-saved: <span id="lastSaved">Never</span></p>
+                <p>Unsaved changes: <span id="unsavedCount">0</span></p>
+            </div>
+
+            <div class="autosave-info">
+                <h3>How Auto-Save Works</h3>
+                <ul>
+                    <li>
+                        Form fields are saved to
+                        <strong>sessionStorage</strong> every 5 seconds
+                    </li>
+                    <li>Data also saves when you switch fields (blur event)</li>
+                    <li>
+                        On page refresh, saved data is automatically restored
+                    </li>
+                    <li>Data clears when form is submitted</li>
+                    <li>
+                        Session storage expires when you close the browser tab
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="successMessage" class="success-message">
+            Form submitted successfully!
+        </div>
+
+        <script>
+            // Constants
+            const STORAGE_PREFIX = 'form_';
+            const AUTOSAVE_INTERVAL = 5000; // 5 seconds
+            const SAVED_INDICATOR_DURATION = 2000;
+
+            // DOM elements
+            const form = document.getElementById('contactForm');
+            const inputs = form.querySelectorAll('input, textarea');
+            const lastSavedEl = document.getElementById('lastSaved');
+            const unsavedCountEl = document.getElementById('unsavedCount');
+            const successMessage = document.getElementById('successMessage');
+            const clearFormBtn = document.getElementById('clearFormBtn');
+            const recoverBtn = document.getElementById('recoverBtn');
+
+            let autoSaveTimer = null;
+            let unsavedChanges = 0;
+
+            /**
+             * Generate storage key for a field
+             * @param {HTMLElement} input - Input element
+             * @returns {string} Storage key
+             */
+            function getStorageKey(input) {
+                return STORAGE_PREFIX + input.name;
+            }
+
+            /**
+             * Save a single field to sessionStorage
+             * @param {HTMLElement} input - Input element
+             */
+            function saveField(input) {
+                try {
+                    sessionStorage.setItem(getStorageKey(input), input.value);
+                    showSavedIndicator(input.name);
+                    unsavedChanges--;
+                    updateUnsavedCount();
+                } catch (error) {
+                    console.error('Error saving field:', error);
+                }
+            }
+
+            /**
+             * Load a single field from sessionStorage
+             * @param {HTMLElement} input - Input element
+             */
+            function loadField(input) {
+                try {
+                    const saved = sessionStorage.getItem(getStorageKey(input));
+                    if (saved !== null) {
+                        input.value = saved;
+                    }
+                } catch (error) {
+                    console.error('Error loading field:', error);
+                }
+            }
+
+            /**
+             * Show saved indicator
+             * @param {string} fieldName - Field name
+             */
+            function showSavedIndicator(fieldName) {
+                const indicator = document.getElementById(fieldName + 'Saved');
+                if (indicator) {
+                    indicator.classList.add('visible');
+                    setTimeout(() => {
+                        indicator.classList.remove('visible');
+                    }, SAVED_INDICATOR_DURATION);
+                }
+            }
+
+            /**
+             * Update last saved timestamp
+             */
+            function updateLastSaved() {
+                const now = new Date();
+                lastSavedEl.textContent = now.toLocaleTimeString();
+            }
+
+            /**
+             * Update unsaved changes count
+             */
+            function updateUnsavedCount() {
+                unsavedCountEl.textContent = unsavedChanges;
+            }
+
+            /**
+             * Auto-save all form fields
+             */
+            function autoSaveAll() {
+                inputs.forEach((input) => {
+                    const savedValue = sessionStorage.getItem(
+                        getStorageKey(input)
+                    );
+                    if (savedValue !== input.value) {
+                        saveField(input);
+                    }
+                });
+                updateLastSaved();
+            }
+
+            /**
+             * Clear all saved form data
+             */
+            function clearAllSavedData() {
+                if (confirm('Clear all saved form data?')) {
+                    inputs.forEach((input) => {
+                        sessionStorage.removeItem(getStorageKey(input));
+                        input.value = '';
+                    });
+                    unsavedChanges = 0;
+                    updateUnsavedCount();
+                    lastSavedEl.textContent = 'Never';
+                }
+            }
+
+            /**
+             * Recover data from sessionStorage
+             */
+            function recoverData() {
+                inputs.forEach((input) => {
+                    loadField(input);
+                });
+                alert('Form data recovered!');
+            }
+
+            /**
+             * Handle form submission
+             * @param {Event} e - Submit event
+             */
+            function handleSubmit(e) {
+                e.preventDefault();
+
+                // Show success message
+                successMessage.classList.add('show');
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 3000);
+
+                // Clear saved data
+                inputs.forEach((input) => {
+                    sessionStorage.removeItem(getStorageKey(input));
+                });
+
+                // Clear form
+                form.reset();
+
+                unsavedChanges = 0;
+                updateUnsavedCount();
+                lastSavedEl.textContent = 'Never';
+
+                console.log('Form submitted and cleared from storage');
+            }
+
+            // Event listeners
+            inputs.forEach((input) => {
+                // Save on blur (when leaving field)
+                input.addEventListener('blur', () => {
+                    saveField(input);
+                });
+
+                // Track unsaved changes
+                input.addEventListener('input', () => {
+                    unsavedChanges++;
+                    updateUnsavedCount();
+                });
+            });
+
+            form.addEventListener('submit', handleSubmit);
+            clearFormBtn.addEventListener('click', clearAllSavedData);
+            recoverBtn.addEventListener('click', recoverData);
+
+            // Set up auto-save interval
+            autoSaveTimer = setInterval(autoSaveAll, AUTOSAVE_INTERVAL);
+
+            // Restore saved data on page load
+            (function init() {
+                inputs.forEach((input) => {
+                    loadField(input);
+                });
+                updateLastSaved();
+            })();
+
+            console.log(
+                'Auto-save form initialized (interval:',
+                AUTOSAVE_INTERVAL / 1000,
+                'seconds)'
+            );
+        </script>
+    </body>
+</html>

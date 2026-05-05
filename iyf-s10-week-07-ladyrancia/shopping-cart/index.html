@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Shopping Cart - Week 7</title>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <header>
+            <h1>🛒 ShopCart</h1>
+            <div class="cart-summary">
+                <span>Cart:</span>
+                <span id="cartBadge" class="badge">0</span>
+                <span id="cartTotal">$0.00</span>
+            </div>
+        </header>
+
+        <main>
+            <!-- Products Section -->
+            <section id="productsSection">
+                <h2>Products</h2>
+                <div id="productsGrid" class="products-grid">
+                    <!-- Products rendered by JS -->
+                </div>
+            </section>
+
+            <!-- Cart Section -->
+            <section id="cartSection">
+                <h2>Your Cart</h2>
+                <div id="emptyCartMsg" class="empty-cart">
+                    Your cart is empty
+                </div>
+                <div id="cartContainer">
+                    <div id="cartItems" class="cart-items">
+                        <!-- Cart items rendered by JS -->
+                    </div>
+                    <div class="cart-summary-row">
+                        <button id="clearCartBtn" class="clear-cart-btn">
+                            Clear Cart
+                        </button>
+                        <div class="cart-total">
+                            <span>Total:</span>
+                            <span id="cartTotalDisplay">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Shopping Cart with State Management & LocalStorage</p>
+        </footer>
+
+        <script type="module" src="js/app.js"></script>
+    </body>
+</html>
